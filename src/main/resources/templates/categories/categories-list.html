@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Danh sách danh mục</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0"><i class="bi bi-tags"></i> Quản lý Danh mục</h3>
+                <a href="/admin/categories/add" class="btn btn-primary-custom"><i class="bi bi-plus-circle"></i> Thêm danh mục</a>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover table-bordered mb-0 admin-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Tên danh mục</th>
+                                <th style="width: 120px;">Trạng thái</th>
+                                <th class="text-center" style="width: 150px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="cat, stat : ${categories}">
+                                <td th:text="${stat.count}"></td>
+                                <td th:text="${cat.name}" class="fw-bold"></td>
+                                <td>
+                                    <span th:if="${cat.active}" class="badge bg-success">Hiển thị</span>
+                                    <span th:unless="${cat.active}" class="badge bg-secondary">Ẩn</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{/admin/categories/edit/{id}(id=${cat.id})}" class="btn btn-outline-primary" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                        <a th:href="@{/admin/categories/delete/{id}(id=${cat.id})}" class="btn btn-outline-danger" title="Xóa" onclick="return confirm('Xóa danh mục này?')"><i class="bi bi-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(categories)}">
+                                <td colspan="3" class="text-center text-muted py-4">Chưa có danh mục nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

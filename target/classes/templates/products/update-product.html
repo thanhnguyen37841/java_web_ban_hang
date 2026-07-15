@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Sửa sản phẩm</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container py-4">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Quản trị</a></li>
+        <li class="breadcrumb-item"><a href="/admin/products">Sản phẩm</a></li>
+        <li class="breadcrumb-item active">Sửa</li>
+    </ol></nav>
+    <div class="card shadow-sm">
+        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-pencil"></i> Sửa sản phẩm</h5></div>
+        <div class="card-body">
+            <form th:action="@{/products/update/{id}(id=${product.id})}" method="post" th:object="${product}" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" th:field="*{name}" required>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label fw-bold">Giá gốc *</label><input type="number" class="form-control" th:field="*{price}" min="0" step="1000" required></div>
+                            <div class="col-md-4 mb-3"><label class="form-label fw-bold">Giá khuyến mãi</label><input type="number" class="form-control" th:field="*{salePrice}" min="0" step="1000"></div>
+                            <div class="col-md-4 mb-3"><label class="form-label fw-bold">Tồn kho *</label><input type="number" class="form-control" th:field="*{stockQuantity}" min="0" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label fw-bold">Danh mục</label>
+                                <select class="form-select" th:field="*{category.id}"><option value="">-- Chọn --</option><option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option></select>
+                            </div>
+                            <div class="col-md-4 mb-3"><label class="form-label fw-bold">Thương hiệu</label><input type="text" class="form-control" th:field="*{brand}"></div>
+                            <div class="col-md-4 mb-3 d-flex align-items-end">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" th:field="*{featured}" id="featured"><label class="form-check-label" for="featured">Nổi bật</label></div>
+                                <div class="form-check ms-3"><input class="form-check-input" type="checkbox" th:field="*{active}" id="active"><label class="form-check-label" for="active">Hiển thị</label></div>
+                            </div>
+                        </div>
+                        <div class="mb-3"><label class="form-label fw-bold">Mô tả</label><textarea class="form-control" th:field="*{description}" rows="4"></textarea></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3" th:if="${product.imageUrl}">
+                            <label class="form-label fw-bold">Ảnh hiện tại</label>
+                            <img th:src="${product.imageUrl}" class="img-fluid rounded" style="max-height:200px">
+                        </div>
+                        <div class="mb-3" th:if="${not #lists.isEmpty(product.images)}">
+                            <label class="form-label fw-bold">Ảnh phụ hiện tại</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div th:each="img : ${product.images}" class="position-relative text-center border p-1 rounded">
+                                    <img th:src="${img.imageUrl}" class="img-thumbnail d-block mb-1" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <input type="checkbox" name="deleteImageIds" th:value="${img.id}" id="'del_' + ${img.id}">
+                                    <label th:for="'del_' + ${img.id}" class="small text-danger">Xóa ảnh này</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3"><label class="form-label fw-bold">Thay ảnh chính</label><input type="file" class="form-control" name="mainImage" accept="image/*" onchange="previewImages(this,'previewMain')"><div id="previewMain" class="mt-2"></div></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Thêm ảnh phụ mới</label><input type="file" class="form-control" name="additionalImages" accept="image/*" multiple onchange="previewImages(this,'previewAdditional')"><div id="previewAdditional" class="mt-2 d-flex flex-wrap"></div></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Hoặc URL ảnh</label><input type="text" class="form-control" th:field="*{imageUrl}"></div>
+                    </div>
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-primary-custom"><i class="bi bi-check-lg"></i> Cập nhật</button>
+                <a href="/admin/products" class="btn btn-secondary ms-2">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Trang chủ</title></head>
+<body>
+<div layout:fragment="content">
+    <!-- HERO -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <h1>Mua sắm thông minh<br>Giá cả hợp lý</h1>
+                    <p>Khám phá hàng ngàn sản phẩm chất lượng với giá tốt nhất. Giao hàng nhanh chóng, đổi trả dễ dàng.</p>
+                    <a href="/products" class="btn btn-primary-custom btn-lg mt-2"><i class="bi bi-bag"></i> Mua sắm ngay</a>
+                    <a href="/register" class="btn btn-outline-light btn-lg mt-2 ms-2">Đăng ký</a>
+                </div>
+                <div class="col-md-5 text-center">
+                    <i class="bi bi-bag-check" style="font-size:12rem;opacity:0.15"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container py-5">
+        <!-- CATEGORIES -->
+        <div th:if="${categories != null && !categories.isEmpty()}" class="mb-5">
+            <h3 class="section-title text-center">Danh mục sản phẩm</h3>
+            <div class="row g-3 justify-content-center">
+                <div class="col-6 col-md-2" th:each="cat : ${categories}">
+                    <a th:href="@{/products(categoryId=${cat.id})}" class="text-decoration-none">
+                        <div class="category-card">
+                            <i class="bi bi-tag d-block"></i>
+                            <span class="fw-600" th:text="${cat.name}">Danh mục</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SALE PRODUCTS -->
+        <div th:if="${saleProducts != null && !saleProducts.isEmpty()}" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="section-title mb-0">🔥 Đang giảm giá</h3>
+                <a href="/products?sort=price_asc" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <div class="col-6 col-md-3" th:each="p : ${saleProducts}" th:if="${#lists.size(saleProducts) > 0}">
+                    <div class="product-card card">
+                        <div class="product-image-wrapper">
+                            <span class="product-badge badge-sale" th:text="'-' + ${p.discountPercent} + '%'">-20%</span>
+                            <img th:src="${p.imageUrl != null ? p.imageUrl : 'https://via.placeholder.com/400'}" alt="">
+                            <div class="product-actions">
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="btn btn-light btn-sm">Chi tiết</a>
+                                <button class="btn btn-light quick-view-btn" th:onclick="'openQuickView(' + ${p.id} + ')'"><i class="bi bi-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <span class="product-category" th:text="${p.category?.name}"></span>
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="d-block product-name" th:text="${p.name}">Sản phẩm</a>
+                            <div class="mt-2">
+                                <span class="text-original" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="text-sale ms-2" th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEATURED PRODUCTS -->
+        <div th:if="${featuredProducts != null && !featuredProducts.isEmpty()}" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="section-title mb-0">⭐ Sản phẩm nổi bật</h3>
+                <a href="/products" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <div class="col-6 col-md-3" th:each="p : ${featuredProducts}">
+                    <div class="product-card card">
+                        <div class="product-image-wrapper">
+                            <span class="product-badge badge-featured" th:if="${p.featured}">Nổi bật</span>
+                            <span class="product-badge badge-sale" th:if="${p.onSale}" th:text="'-' + ${p.discountPercent} + '%'"></span>
+                            <img th:src="${p.imageUrl != null ? p.imageUrl : 'https://via.placeholder.com/400'}" alt="">
+                            <div class="product-actions">
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="btn btn-light btn-sm">Chi tiết</a>
+                                <button class="btn btn-light quick-view-btn" th:onclick="'openQuickView(' + ${p.id} + ')'"><i class="bi bi-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <span class="product-category" th:text="${p.category?.name}"></span>
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="d-block product-name" th:text="${p.name}">Sản phẩm</a>
+                            <div class="mt-2" th:if="${p.onSale}">
+                                <span class="text-original" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="text-sale ms-2" th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="mt-2" th:unless="${p.onSale}">
+                                <span class="text-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW PRODUCTS -->
+        <div th:if="${newProducts != null && !newProducts.isEmpty()}" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="section-title mb-0">🆕 Sản phẩm mới</h3>
+                <a href="/products?sort=newest" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <div class="col-6 col-md-3" th:each="p : ${newProducts}">
+                    <div class="product-card card">
+                        <div class="product-image-wrapper">
+                            <img th:src="${p.imageUrl != null ? p.imageUrl : 'https://via.placeholder.com/400'}" alt="">
+                            <div class="product-actions">
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="btn btn-light btn-sm">Chi tiết</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <span class="product-category" th:text="${p.category?.name}"></span>
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="d-block product-name" th:text="${p.name}">Sản phẩm</a>
+                            <div class="mt-2">
+                                <span th:if="${p.onSale}" class="text-original" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span th:if="${p.onSale}" class="text-sale ms-2" th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span th:unless="${p.onSale}" class="text-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

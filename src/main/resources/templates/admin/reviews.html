@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Quản lý đánh giá - Admin</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0"><i class="bi bi-chat-dots"></i> Quản lý đánh giá</h3>
+                <span class="badge bg-warning text-dark" th:if="${pendingCount > 0}" th:text="${pendingCount} + ' chờ duyệt'"></span>
+            </div>
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>ID</th><th>Sản phẩm</th><th>Khách hàng</th><th>Đánh giá</th><th>Bình luận</th><th>Ngày</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                        <tr th:each="r : ${reviews}">
+                            <td th:text="${r.id}"></td>
+                            <td><a th:href="@{/products/{id}(id=${r.product.id})}" th:text="${r.product.name}" class="text-dark"></a></td>
+                            <td th:text="${r.user?.username}"></td>
+                            <td class="star-rating"><span th:each="i : ${#numbers.sequence(1,5)}"><i th:class="${i <= r.rating} ? 'bi bi-star-fill' : 'bi bi-star'"></i></span></td>
+                            <td><small th:text="${#strings.abbreviate(r.comment, 50)}"></small></td>
+                            <td th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}"></td>
+                            <td><span th:if="${r.approved}" class="badge bg-success">Đã duyệt</span><span th:unless="${r.approved}" class="badge bg-warning text-dark">Chờ duyệt</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <form th:unless="${r.approved}" th:action="@{/admin/reviews/{id}/approve(id=${r.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-success" title="Duyệt"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                    <form th:action="@{/admin/reviews/{id}/delete(id=${r.id})}" method="post" class="d-inline" onsubmit="return confirm('Xóa đánh giá này?')">
+                                        <button type="submit" class="btn btn-outline-danger" title="Xóa"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${reviews == null || reviews.isEmpty()}" class="text-center text-muted py-4">Chưa có đánh giá nào.</p>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

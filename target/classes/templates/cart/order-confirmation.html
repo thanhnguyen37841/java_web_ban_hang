@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Đặt hàng thành công</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size:5rem"></i>
+        <h2 class="mt-3 fw-bold">Đặt hàng thành công!</h2>
+        <p class="text-muted">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý.</p>
+    </div>
+    <div class="row justify-content-center" th:if="${order != null}">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
+                    <table class="table table-borderless mb-0">
+                        <tr><td class="text-muted">Mã đơn:</td><td class="fw-bold" th:text="'#' + ${order.id}"></td></tr>
+                        <tr><td class="text-muted">Khách hàng:</td><td th:text="${order.customerName}"></td></tr>
+                        <tr><td class="text-muted">SĐT:</td><td th:text="${order.phone}"></td></tr>
+                        <tr><td class="text-muted">Email:</td><td th:text="${order.email}"></td></tr>
+                        <tr><td class="text-muted">Địa chỉ:</td><td th:text="${order.address}"></td></tr>
+                        <tr><td class="text-muted">Thanh toán:</td><td th:text="${order.paymentMethod}"></td></tr>
+                        <tr th:if="${order.note}"><td class="text-muted">Ghi chú:</td><td th:text="${order.note}"></td></tr>
+                        <tr><td class="text-muted">Trạng thái:</td><td><span class="badge" th:class="'badge ' + ${order.statusBadgeClass}" th:text="${order.statusDisplay}"></span></td></tr>
+                        <tr><td class="text-muted">Tổng tiền:</td><td class="fw-bold text-price" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td></tr>
+                        <tr th:if="${order.discountAmount > 0}"><td class="text-muted">Giảm giá:</td><td class="text-success" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <a href="/order/history" class="btn btn-primary-custom"><i class="bi bi-receipt"></i> Xem đơn hàng</a>
+        <a href="/" class="btn btn-outline-secondary ms-2"><i class="bi bi-house"></i> Về trang chủ</a>
+    </div>
+</div>
+</div>
+</body>
+</html>

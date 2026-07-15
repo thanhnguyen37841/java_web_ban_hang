@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title>Sản phẩm</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container py-4">
+    <div class="row">
+        <!-- FILTER SIDEBAR -->
+        <div class="col-md-3">
+            <div class="filter-sidebar">
+                <h5 class="fw-bold mb-3"><i class="bi bi-funnel"></i> Bộ lọc</h5>
+                <form th:action="@{/products}" method="get">
+                    <div class="filter-group">
+                        <h6>Tìm kiếm</h6>
+                        <input type="text" class="form-control form-control-sm" name="keyword" th:value="${keyword}" placeholder="Nhập từ khóa...">
+                    </div>
+                    <div class="filter-group">
+                        <h6>Danh mục</h6>
+                        <select class="form-select form-select-sm" name="categoryId">
+                            <option value="">Tất cả</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == selectedCategoryId}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <h6>Thương hiệu</h6>
+                        <select class="form-select form-select-sm" name="brand">
+                            <option value="">Tất cả</option>
+                            <option th:each="b : ${brands}" th:value="${b}" th:text="${b}" th:selected="${b == selectedBrand}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <h6>Khoảng giá</h6>
+                        <div class="price-range">
+                            <input type="number" class="form-control form-control-sm" name="minPrice" th:value="${minPrice}" placeholder="Từ">
+                            <span>-</span>
+                            <input type="number" class="form-control form-control-sm" name="maxPrice" th:value="${maxPrice}" placeholder="Đến">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <h6>Sắp xếp</h6>
+                        <select class="form-select form-select-sm" name="sort">
+                            <option value="newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                            <option value="price_asc" th:selected="${selectedSort == 'price_asc'}">Giá tăng dần</option>
+                            <option value="price_desc" th:selected="${selectedSort == 'price_desc'}">Giá giảm dần</option>
+                            <option value="popular" th:selected="${selectedSort == 'popular'}">Phổ biến nhất</option>
+                            <option value="name_asc" th:selected="${selectedSort == 'name_asc'}">Tên A-Z</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-search"></i> Lọc</button>
+                    <a href="/products" class="btn btn-outline-secondary w-100 mt-2 btn-sm">Xóa bộ lọc</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- PRODUCT GRID -->
+        <div class="col-md-9">
+            <div class="sort-bar">
+                <span><strong th:text="${#lists.size(products)}">0</strong> sản phẩm</span>
+            </div>
+
+            <div class="row g-3" th:if="${products != null && !products.isEmpty()}">
+                <div class="col-6 col-lg-4" th:each="p : ${products}">
+                    <div class="product-card card">
+                        <div class="product-image-wrapper">
+                            <span class="product-badge badge-sale" th:if="${p.onSale}" th:text="'-' + ${p.discountPercent} + '%'"></span>
+                            <span class="product-badge badge-out-of-stock" th:if="${!p.inStock}">Hết hàng</span>
+                            <img th:src="${p.imageUrl != null ? p.imageUrl : 'https://via.placeholder.com/400'}" alt="">
+                            <div class="product-actions">
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="btn btn-light btn-sm"><i class="bi bi-eye"></i> Chi tiết</a>
+                                <form th:action="@{/cart/add}" method="post" sec:authorize="hasAuthority('USER')" th:if="${p.inStock}" class="d-inline">
+                                    <input type="hidden" name="productId" th:value="${p.id}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-cart-plus"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <span class="product-category" th:text="${p.category?.name}"></span>
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="d-block product-name" th:text="${p.name}"></a>
+                            <div class="mt-2" th:if="${p.onSale}">
+                                <span class="text-original" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="text-sale ms-1" th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="mt-2" th:unless="${p.onSale}">
+                                <span class="text-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${products == null || products.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-search" style="font-size:3rem;color:#ccc"></i>
+                <p class="mt-3 text-muted">Không tìm thấy sản phẩm nào phù hợp</p>
+                <a href="/products" class="btn btn-primary-custom">Xem tất cả sản phẩm</a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

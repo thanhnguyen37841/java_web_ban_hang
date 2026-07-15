@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Quản lý khách hàng - Admin</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <h3 class="fw-bold mb-4"><i class="bi bi-people"></i> Quản lý khách hàng</h3>
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>ID</th><th>Username</th><th>Họ tên</th><th>Email</th><th>SĐT</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                        <tr th:each="u : ${users}">
+                            <td th:text="${u.id}"></td>
+                            <td class="fw-bold" th:text="${u.username}"></td>
+                            <td th:text="${u.fullName}"></td>
+                            <td th:text="${u.email}"></td>
+                            <td th:text="${u.phone}"></td>
+                            <td><span th:each="r : ${u.roles}" class="badge me-1" th:classappend="${r.name == 'ADMIN'} ? 'bg-danger' : 'bg-primary'" th:text="${r.name}"></span></td>
+                            <td><span th:unless="${u.locked}" class="badge bg-success">Hoạt động</span><span th:if="${u.locked}" class="badge bg-danger">Bị khóa</span></td>
+                            <td>
+                                <form th:action="@{/admin/users/{id}/toggle-lock(id=${u.id})}" method="post" class="d-inline" th:if="${!u.roles.![name].contains('ADMIN')}">
+                                    <button type="submit" class="btn btn-sm" th:classappend="${u.locked} ? 'btn-outline-success' : 'btn-outline-danger'" th:text="${u.locked} ? 'Mở khóa' : 'Khóa'"></button>
+                                </form>
+                                <span th:if="${u.roles.![name].contains('ADMIN')}" class="text-muted small">Admin</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

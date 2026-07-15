@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Quản lý đơn hàng - Admin</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <h3 class="fw-bold mb-4"><i class="bi bi-receipt"></i> Quản lý đơn hàng</h3>
+            <!-- Filter buttons -->
+            <div class="mb-3 d-flex gap-2 flex-wrap">
+                <a href="/admin/orders" class="btn btn-sm" th:classappend="${selectedStatus == null} ? 'btn-dark' : 'btn-outline-dark'">Tất cả</a>
+                <a href="/admin/orders?status=PENDING" class="btn btn-sm" th:classappend="${selectedStatus == 'PENDING'} ? 'btn-warning' : 'btn-outline-warning'">Chờ xác nhận</a>
+                <a href="/admin/orders?status=CONFIRMED" class="btn btn-sm" th:classappend="${selectedStatus == 'CONFIRMED'} ? 'btn-info' : 'btn-outline-info'">Đã xác nhận</a>
+                <a href="/admin/orders?status=SHIPPING" class="btn btn-sm" th:classappend="${selectedStatus == 'SHIPPING'} ? 'btn-primary' : 'btn-outline-primary'">Đang giao</a>
+                <a href="/admin/orders?status=COMPLETED" class="btn btn-sm" th:classappend="${selectedStatus == 'COMPLETED'} ? 'btn-success' : 'btn-outline-success'">Hoàn thành</a>
+                <a href="/admin/orders?status=CANCELLED" class="btn btn-sm" th:classappend="${selectedStatus == 'CANCELLED'} ? 'btn-danger' : 'btn-outline-danger'">Đã hủy</a>
+            </div>
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Mã</th><th>Khách hàng</th><th>SĐT</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Giảm giá</th><th>Thanh toán</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+                    <tbody>
+                        <tr th:each="o : ${orders}">
+                            <td><a th:href="@{/order/{id}(id=${o.id})}" class="fw-bold" th:text="'#' + ${o.id}"></a></td>
+                            <td th:text="${o.customerName}"></td>
+                            <td th:text="${o.phone}"></td>
+                            <td th:text="${#temporals.format(o.orderDate, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="fw-bold" th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            <td th:if="${o.discountAmount > 0}" class="text-success" th:text="'-' + ${#numbers.formatDecimal(o.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            <td th:unless="${o.discountAmount > 0}">—</td>
+                            <td th:text="${o.paymentMethod}"></td>
+                            <td><span class="badge" th:class="'badge ' + ${o.statusBadgeClass}" th:text="${o.statusDisplay}"></span></td>
+                            <td>
+                                <!-- PENDING -> CONFIRMED or CANCELLED -->
+                                <form th:if="${o.status == 'PENDING'}" th:action="@{/admin/orders/{id}/status(id=${o.id})}" method="post" class="d-inline status-form">
+                                    <select name="status" class="form-select form-select-sm d-inline-block" style="width:auto">
+                                        <option value="CONFIRMED">Xác nhận</option>
+                                        <option value="CANCELLED">Hủy</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check"></i></button>
+                                </form>
+                                <!-- CONFIRMED -> SHIPPING or CANCELLED -->
+                                <form th:if="${o.status == 'CONFIRMED'}" th:action="@{/admin/orders/{id}/status(id=${o.id})}" method="post" class="d-inline status-form">
+                                    <select name="status" class="form-select form-select-sm d-inline-block" style="width:auto">
+                                        <option value="SHIPPING">Giao hàng</option>
+                                        <option value="CANCELLED">Hủy</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check"></i></button>
+                                </form>
+                                <!-- SHIPPING -> COMPLETED -->
+                                <form th:if="${o.status == 'SHIPPING'}" th:action="@{/admin/orders/{id}/status(id=${o.id})}" method="post" class="d-inline status-form">
+                                    <input type="hidden" name="status" value="COMPLETED">
+                                    <button type="submit" class="btn btn-sm btn-success">Hoàn thành</button>
+                                </form>
+                                <span th:if="${o.status == 'COMPLETED' || o.status == 'CANCELLED'}" class="text-muted small">—</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${orders == null || orders.isEmpty()}" class="text-center text-muted py-4">Không có đơn hàng nào.</p>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

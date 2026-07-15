@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Quản lý tồn kho - Admin</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0"><i class="bi bi-box2"></i> Quản lý tồn kho</h3>
+            </div>
+            
+            <div th:if="${lowStockProducts != null && !lowStockProducts.isEmpty()}" class="alert alert-danger shadow-sm mb-4">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Cảnh báo tồn kho thấp</h5>
+                <p class="mb-0">Có <strong th:text="${lowStockProducts.size()}"></strong> sản phẩm sắp hết hàng (tồn kho < 5). Vui lòng nhập thêm hàng.</p>
+            </div>
+
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th style="width:60px">Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Tồn kho hiện tại</th><th>Cập nhật tồn kho</th></tr></thead>
+                    <tbody>
+                        <tr th:each="p : ${products}" th:classappend="${p.stockQuantity < 5} ? 'table-danger' : (${p.stockQuantity < 10} ? 'table-warning')">
+                            <td><img th:src="${p.imageUrl != null ? p.imageUrl : 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:6px"></td>
+                            <td>
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="fw-bold text-dark" th:text="${p.name}"></a>
+                                <div class="small text-muted" th:text="'Mã SP: #' + ${p.id}"></div>
+                            </td>
+                            <td th:text="${p.category?.name}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${p.stockQuantity < 5} ? 'bg-danger' : (${p.stockQuantity < 10} ? 'bg-warning text-dark' : 'bg-success')">
+                                    <i th:if="${p.stockQuantity < 5}" class="bi bi-exclamation-triangle me-1"></i>
+                                    <span th:text="${p.stockQuantity}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/inventory/{id}/update(id=${p.id})}" method="post" class="d-flex align-items-center gap-2">
+                                    <input type="number" name="stockQuantity" class="form-control form-control-sm" style="width: 100px" th:value="${p.stockQuantity}" min="0" required>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check2"></i> Cập nhật</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${products == null || products.isEmpty()}" class="text-center text-muted py-4">Chưa có sản phẩm nào.</p>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

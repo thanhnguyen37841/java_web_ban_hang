@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="sidebar" class="admin-sidebar">
+    <div class="sidebar-header"><i class="bi bi-gear-fill"></i> Quản trị</div>
+    <nav class="sidebar-nav" id="adminSidebarNav">
+        <a href="/admin/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/admin/products" class="sidebar-link"><i class="bi bi-box-seam"></i> Sản phẩm</a>
+        <a href="/admin/categories" class="sidebar-link"><i class="bi bi-tags"></i> Danh mục</a>
+        <a href="/admin/orders" class="sidebar-link"><i class="bi bi-receipt"></i> Đơn hàng</a>
+        <a href="/admin/users" class="sidebar-link"><i class="bi bi-people"></i> Khách hàng</a>
+        <a href="/admin/reviews" class="sidebar-link"><i class="bi bi-chat-dots"></i> Đánh giá</a>
+        <a href="/admin/coupons" class="sidebar-link"><i class="bi bi-ticket-perforated"></i> Khuyến mãi</a>
+        <a href="/admin/inventory" class="sidebar-link"><i class="bi bi-box2"></i> Tồn kho</a>
+    </nav>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentPath = window.location.pathname;
+            const links = document.querySelectorAll('#adminSidebarNav .sidebar-link');
+            let matched = false;
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (currentPath.includes(href)) {
+                    link.classList.add('active');
+                    matched = true;
+                }
+            });
+            // Default to dashboard if root /admin/
+            if (!matched && (currentPath === '/admin' || currentPath === '/admin/')) {
+                links[0].classList.add('active');
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

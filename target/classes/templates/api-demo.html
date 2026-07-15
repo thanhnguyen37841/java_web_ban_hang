@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm - REST API</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .table th { background-color: #0d6efd; color: white; }
+        #loadingSpinner { display: none; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <span class="navbar-brand"><i class="bi bi-code-slash"></i> REST API Demo - Văn Phòng Phẩm HUTECH</span>
+        <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-house"></i> Về trang chủ</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <!-- Form thêm/sửa -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0" id="formTitle"><i class="bi bi-plus-circle"></i> Thêm sản phẩm mới</h6>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" id="productId">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Tên sản phẩm</label>
+                        <input type="text" id="productName" class="form-control" placeholder="Tên sản phẩm...">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Giá (VNĐ)</label>
+                        <input type="number" id="productPrice" class="form-control" placeholder="0" step="1000">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea id="productDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-primary" onclick="saveProduct()">
+                            <i class="bi bi-save"></i> <span id="saveButtonText">Lưu</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetForm()">
+                            <i class="bi bi-x-circle"></i> Reset
+                        </button>
+                    </div>
+                    <div id="formMessage" class="mt-2"></div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="bi bi-terminal"></i> API Endpoints</h6>
+                </div>
+                <div class="card-body small">
+                    <code>GET /api/products</code> — Lấy tất cả<br>
+                    <code>GET /api/products/{id}</code> — Lấy theo ID<br>
+                    <code>POST /api/products</code> — Tạo mới<br>
+                    <code>PUT /api/products/{id}</code> — Cập nhật<br>
+                    <code>DELETE /api/products/{id}</code> — Xóa<br>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-list-ul"></i> Danh sách sản phẩm (qua API)</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadProducts()">
+                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="loadingSpinner" class="text-center py-3">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">Đang tải...</p>
+                    </div>
+                    <div id="alertMessage"></div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th class="text-end">Giá</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody">
+                                <tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_URL = '/api/products';
+
+    // Load danh sách sản phẩm
+    async function loadProducts() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+        try {
+            const response = await fetch(API_URL);
+            const products = await response.json();
+            renderProductTable(products);
+        } catch (err) {
+            showAlert('Lỗi kết nối API: ' + err.message, 'danger');
+        } finally {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+    }
+
+    function renderProductTable(products) {
+        const tbody = document.getElementById('productTableBody');
+        if (products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có sản phẩm nào</td></tr>';
+            return;
+        }
+        tbody.innerHTML = products.map(p => `
+            <tr>
+                <td><span class="badge bg-secondary">${p.id}</span></td>
+                <td>${p.name || ''}</td>
+                <td class="text-end fw-bold text-danger">${formatPrice(p.price)} VNĐ</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-warning me-1" onclick="editProduct(${p.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id}, '${p.name}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Lưu sản phẩm (POST hoặc PUT)
+    async function saveProduct() {
+        const id = document.getElementById('productId').value;
+        const product = {
+            name: document.getElementById('productName').value.trim(),
+            price: parseFloat(document.getElementById('productPrice').value) || 0,
+            description: document.getElementById('productDescription').value.trim()
+        };
+
+        if (!product.name) {
+            showFormMessage('Vui lòng nhập tên sản phẩm!', 'danger');
+            return;
+        }
+
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product)
+            });
+
+            if (response.ok) {
+                showFormMessage(id ? 'Cập nhật thành công!' : 'Thêm thành công!', 'success');
+                resetForm();
+                loadProducts();
+            } else {
+                showFormMessage('Lỗi khi lưu sản phẩm!', 'danger');
+            }
+        } catch (err) {
+            showFormMessage('Lỗi: ' + err.message, 'danger');
+        }
+    }
+
+    // Lấy thông tin sản phẩm để sửa
+    async function editProduct(id) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`);
+            const product = await response.json();
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name || '';
+            document.getElementById('productPrice').value = product.price || 0;
+            document.getElementById('productDescription').value = product.description || '';
+            document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil"></i> Cập nhật sản phẩm #' + id;
+            document.getElementById('saveButtonText').textContent = 'Cập nhật';
+        } catch (err) {
+            showAlert('Không thể tải thông tin sản phẩm!', 'danger');
+        }
+    }
+
+    // Xóa sản phẩm
+    async function deleteProduct(id, name) {
+        if (!confirm(`Xóa sản phẩm "${name}"?`)) return;
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                showAlert('Xóa thành công!', 'success');
+                loadProducts();
+            } else {
+                showAlert('Lỗi khi xóa sản phẩm!', 'danger');
+            }
+        } catch (err) {
+            showAlert('Lỗi: ' + err.message, 'danger');
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('productId').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productDescription').value = '';
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Thêm sản phẩm mới';
+        document.getElementById('saveButtonText').textContent = 'Lưu';
+        document.getElementById('formMessage').innerHTML = '';
+    }
+
+    function showAlert(msg, type) {
+        document.getElementById('alertMessage').innerHTML =
+            `<div class="alert alert-${type} alert-dismissible fade show">
+                ${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        setTimeout(() => document.getElementById('alertMessage').innerHTML = '', 4000);
+    }
+
+    function showFormMessage(msg, type) {
+        document.getElementById('formMessage').innerHTML =
+            `<div class="alert alert-${type} py-1 small">${msg}</div>`;
+        setTimeout(() => document.getElementById('formMessage').innerHTML = '', 3000);
+    }
+
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price);
+    }
+
+    // Load khi trang mở
+    loadProducts();
+</script>
+</body>
+</html>

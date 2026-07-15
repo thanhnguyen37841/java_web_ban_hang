@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Dashboard - Quản trị</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <h3 class="fw-bold mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h3>
+            <!-- Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card bg-gradient-green">
+                        <div class="d-flex justify-content-between"><div><div class="stat-label">Tổng doanh thu</div><div class="stat-value" th:text="${#numbers.formatDecimal(stats['totalRevenue'], 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div></div><div class="stat-icon"><i class="bi bi-cash-stack"></i></div></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-gradient-blue">
+                        <div class="d-flex justify-content-between"><div><div class="stat-label">Tổng đơn hàng</div><div class="stat-value" th:text="${stats['totalOrders']}">0</div></div><div class="stat-icon"><i class="bi bi-cart-check"></i></div></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-gradient-purple">
+                        <div class="d-flex justify-content-between"><div><div class="stat-label">Khách hàng</div><div class="stat-value" th:text="${stats['totalCustomers']}">0</div></div><div class="stat-icon"><i class="bi bi-people"></i></div></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-gradient-orange">
+                        <div class="d-flex justify-content-between"><div><div class="stat-label">Đơn chờ xử lý</div><div class="stat-value" th:text="${stats['pendingOrders']}">0</div></div><div class="stat-icon"><i class="bi bi-clock-history"></i></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Order Status Summary -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white fw-bold">Thống kê trạng thái đơn hàng</div>
+                        <div class="card-body p-0">
+                            <table class="table mb-0">
+                                <thead class="table-light"><tr><th>Trạng thái</th><th>Số lượng</th></tr></thead>
+                                <tbody>
+                                    <tr><td><span class="badge bg-warning text-dark">Chờ xác nhận</span></td><td th:text="${stats['pendingOrders']}">0</td></tr>
+                                    <tr><td><span class="badge bg-info">Đã xác nhận</span></td><td th:text="${stats['confirmedOrders']}">0</td></tr>
+                                    <tr><td><span class="badge bg-primary">Đang giao</span></td><td th:text="${stats['shippingOrders']}">0</td></tr>
+                                    <tr><td><span class="badge bg-success">Hoàn thành</span></td><td th:text="${stats['completedOrders']}">0</td></tr>
+                                    <tr><td><span class="badge bg-danger">Đã hủy</span></td><td th:text="${stats['cancelledOrders']}">0</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chart -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white fw-bold">Biểu đồ đơn hàng</div>
+                        <div class="card-body"><canvas id="orderChart" height="250"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                    <span>Đơn hàng gần đây</span><a href="/admin/orders" class="text-decoration-none small">Xem tất cả →</a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 admin-table">
+                        <thead><tr><th>#</th><th>Khách hàng</th><th>Ngày</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
+                        <tbody>
+                            <tr th:each="o : ${recentOrders}">
+                                <td th:text="${o.id}"></td>
+                                <td th:text="${o.customerName}"></td>
+                                <td th:text="${#temporals.format(o.orderDate, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td class="fw-bold" th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                                <td><span class="badge" th:class="'badge ' + ${o.statusBadgeClass}" th:text="${o.statusDisplay}"></span></td>
+                                <td><a th:href="@{/order/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Low Stock Warning -->
+            <div class="card shadow-sm mt-4" th:if="${lowStockProducts != null && !lowStockProducts.isEmpty()}">
+                <div class="card-header bg-white fw-bold text-danger"><i class="bi bi-exclamation-triangle"></i> Cảnh báo tồn kho thấp</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Sản phẩm</th><th>Tồn kho</th><th></th></tr></thead>
+                        <tbody>
+                            <tr th:each="p : ${lowStockProducts}" class="low-stock-warning">
+                                <td th:text="${p.name}"></td>
+                                <td><span class="badge bg-danger" th:text="${p.stockQuantity}"></span></td>
+                                <td><a href="/admin/inventory" class="btn btn-sm btn-outline-warning">Cập nhật</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const stats = /*[[${stats}]]*/ {};
+    if (document.getElementById('orderChart')) {
+        new Chart(document.getElementById('orderChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                datasets: [{
+                    data: [stats.pendingOrders||0, stats.confirmedOrders||0, stats.shippingOrders||0, stats.completedOrders||0, stats.cancelledOrders||0],
+                    backgroundColor: ['#f39c12','#3498db','#2980b9','#27ae60','#e74c3c']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+        });
+    }
+</script>
+</div>
+</body>
+</html>

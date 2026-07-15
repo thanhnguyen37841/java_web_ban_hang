@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head><title>Quản lý khuyến mãi - Admin</title></head>
+<body>
+<div layout:fragment="content">
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-2 px-0"><div th:replace="~{admin/_sidebar :: sidebar}"></div></div>
+        <div class="col-md-10 px-4">
+            <h3 class="fw-bold mb-4"><i class="bi bi-ticket-perforated"></i> Quản lý khuyến mãi</h3>
+            <!-- Add coupon form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold">Thêm mã giảm giá</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/coupons/add}" method="post" th:object="${coupon}">
+                        <div class="row g-3">
+                            <div class="col-md-3"><label class="form-label fw-bold">Mã code *</label><input type="text" class="form-control" th:field="*{code}" required style="text-transform:uppercase" placeholder="VD: SALE20"></div>
+                            <div class="col-md-2"><label class="form-label fw-bold">Loại *</label>
+                                <select class="form-select" th:field="*{discountType}"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (đ)</option></select>
+                            </div>
+                            <div class="col-md-2"><label class="form-label fw-bold">Giá trị *</label><input type="number" class="form-control" th:field="*{discountValue}" min="1" required></div>
+                            <div class="col-md-2"><label class="form-label fw-bold">Đơn tối thiểu</label><input type="number" class="form-control" th:field="*{minOrderAmount}" min="0" step="10000"></div>
+                            <div class="col-md-2"><label class="form-label fw-bold">Lượt dùng tối đa</label><input type="number" class="form-control" th:field="*{maxUsage}" min="1"></div>
+                            <div class="col-md-3"><label class="form-label fw-bold">Bắt đầu</label><input type="datetime-local" class="form-control" th:field="*{startDate}"></div>
+                            <div class="col-md-3"><label class="form-label fw-bold">Kết thúc</label><input type="datetime-local" class="form-control" th:field="*{endDate}"></div>
+                            <div class="col-md-2 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" th:field="*{active}" id="active" checked><label class="form-check-label" for="active">Kích hoạt</label></div></div>
+                            <div class="col-md-4 d-flex align-items-end"><button type="submit" class="btn btn-primary-custom"><i class="bi bi-plus-circle"></i> Tạo mã</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Coupons table -->
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Code</th><th>Loại</th><th>Giá trị</th><th>Đơn tối thiểu</th><th>Đã dùng/Tối đa</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                        <tr th:each="c : ${coupons}">
+                            <td class="fw-bold" th:text="${c.code}"></td>
+                            <td><span th:text="${c.discountType == 'PERCENT'} ? 'Phần trăm' : 'Cố định'"></span></td>
+                            <td th:text="${c.discountType == 'PERCENT'} ? ${c.discountValue} + '%' : ${#numbers.formatDecimal(c.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            <td th:text="${#numbers.formatDecimal(c.minOrderAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            <td th:text="${c.usedCount} + '/' + ${c.maxUsage}"></td>
+                            <td th:text="${c.startDate != null} ? ${#temporals.format(c.startDate, 'dd/MM/yyyy')} : '—'"></td>
+                            <td th:text="${c.endDate != null} ? ${#temporals.format(c.endDate, 'dd/MM/yyyy')} : '—'"></td>
+                            <td><span th:if="${c.active}" class="badge bg-success">Hoạt động</span><span th:unless="${c.active}" class="badge bg-secondary">Tắt</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <form th:action="@{/admin/coupons/{id}/toggle(id=${c.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn" th:classappend="${c.active} ? 'btn-outline-secondary' : 'btn-outline-success'" th:text="${c.active} ? 'Tắt' : 'Bật'"></button>
+                                    </form>
+                                    <form th:action="@{/admin/coupons/{id}/delete(id=${c.id})}" method="post" class="d-inline" onsubmit="return confirm('Xóa mã giảm giá này?')">
+                                        <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>
